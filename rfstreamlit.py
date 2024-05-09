@@ -45,10 +45,9 @@ def convert_csv_content(csv_file):
     return '\n'.join(converted_data)
 
 # Streamlit UI
-st.set_page_config(page_title="RF SCAN CONVERTER", page_icon=":chart_with_upwards_trend:")
+st.set_page_config(page_title="TinySA Converter", page_icon=":level_slider:")
 
-st.title("RF SCAN CONVERTER")
-st.subheader("by Diogo Guedes")
+
 
 # Custom CSS for background image
 st.markdown(
@@ -63,7 +62,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("RF SCAN CONVERTER")
+st.title("TinySA to Wireless Workbench Converter")
+st.caption("by Diogo Guedes")
 
 uploaded_files = st.file_uploader("Select Multiple .CSV Files", accept_multiple_files=True, type='csv')
 
