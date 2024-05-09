@@ -66,8 +66,7 @@ image_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtEoHXxXuvW67
 st.markdown(f"![Your Image]({image_url})")
 
 st.title("TinySA to Wireless Workbench Converter")
-st.caption("by monsterDSP")
-
+st.markdown("by [monsterDSP](https://instagram.com/monsterdsp)")
 uploaded_files = st.file_uploader("Select Multiple .CSV Files", accept_multiple_files=True, type='csv')
 
 if uploaded_files:
