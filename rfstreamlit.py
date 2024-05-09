@@ -45,7 +45,7 @@ def convert_csv_content(csv_file):
     return '\n'.join(converted_data)
 
 # Streamlit UI
-st.set_page_config(page_title="TinySA Converter", page_icon=":level_slider:")
+st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
 
 
 
