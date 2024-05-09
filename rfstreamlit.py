@@ -3,6 +3,8 @@ import pandas as pd
 import base64
 import io
 
+
+
 def detect_csv_separator(sample_data):
     """Detect the most likely CSV separator used in the file."""
     if b';' in sample_data and b',' not in sample_data:
@@ -65,6 +67,7 @@ def convert_csv_content(csv_file):
 # Streamlit UI
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
 
+
 # Custom CSS for background image
 st.markdown(
     f"""
@@ -77,6 +80,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+
 
 image_url = "https://i.postimg.cc/9FTzQjqf/monsterlogo.png"
 st.markdown(
