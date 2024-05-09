@@ -62,8 +62,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-image_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtEoHXxXuvW679Es7DmIESHFnOI3WjkuEK5q6tCKwp-Q&s"
-st.markdown(f"![Your Image]({image_url})")
+image_url = "https://i.postimg.cc/9FTzQjqf/monsterlogo.png"
+st.markdown(
+    f'<img src="{image_url}" style="display: block; margin-left: auto; margin-right: auto; width: 25%;" />',
+    unsafe_allow_html=True
+)
 
 st.title("TinySA/RF Explorer to Wireless Workbench Converter")
 st.markdown("by [monsterDSP](https://instagram.com/monsterdsp)")
