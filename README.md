@@ -1,2 +1,4 @@
 # Welcome to GitHub Desktop!
-Convert TinySA CSV into Wireless Workbench readable .txt files - by monsterDSP
+RF Scan Converter by monsterDSP
+
+Convert TinySA CSVs into Wireless Workbench formatting
