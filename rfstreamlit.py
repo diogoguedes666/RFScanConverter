@@ -47,6 +47,9 @@ def convert_csv_content(csv_file):
 # Streamlit UI
 st.set_page_config(page_title="RF SCAN CONVERTER", page_icon=":chart_with_upwards_trend:")
 
+st.title("RF SCAN CONVERTER")
+st.subheader("by Diogo Guedes")
+
 # Custom CSS for background image
 st.markdown(
     f"""
