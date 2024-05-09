@@ -62,6 +62,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+image_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtEoHXxXuvW679Es7DmIESHFnOI3WjkuEK5q6tCKwp-Q&s"
+st.markdown(f"![Your Image]({image_url})")
+
 st.title("TinySA to Wireless Workbench Converter")
 st.caption("by Diogo Guedes")
 
