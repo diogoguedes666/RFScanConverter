@@ -22,7 +22,7 @@ def convert_csv_content(csv_file):
     csv_separator = detect_csv_separator(csv_content)
     
     # Read CSV using pandas with detected separator
-    df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'))
+    df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'), header=None)
     
     converted_data = []
     
@@ -30,24 +30,29 @@ def convert_csv_content(csv_file):
         frequency = str(row.iloc[0]).strip()  # Frequency from first column
         value = str(row.iloc[1]).strip() if len(row) > 1 else ''  # Value from second column (if exists)
         
-        # Format the frequency
+        # Format the frequency and convert to float
         if '.' in frequency:
             # Split frequency into integer and decimal parts
             int_part, dec_part = frequency.split('.')
-            # Take the first 3 characters of the integer part and the first 6 characters of the decimal part
-            formatted_frequency = f"{int_part[:3]}.{dec_part[:6].ljust(6, '0')}"
+            # Format frequency with 6 decimal places and convert to float
+            formatted_frequency = f"{int_part}.{dec_part[:6].ljust(6, '0')}"
         else:
-            formatted_frequency = frequency.ljust(10)  # If no decimal part, left justify
+            # Add .000000 if frequency doesn't have decimal part
+            formatted_frequency = f"{frequency}.000000"
+        
+        # Convert formatted frequency to float and divide by 1000000
+        frequency_float = float(formatted_frequency) / 1000000
+        
+        # Format the frequency to have 3 integer digits and 6 decimal places
+        formatted_frequency_output = f"{frequency_float:.6f}"
         
         # Append the formatted line to converted_data
-        converted_data.append(f"{formatted_frequency}, {value}")
+        converted_data.append(f"{formatted_frequency_output}, {value}")
     
     return '\n'.join(converted_data)
 
 # Streamlit UI
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
-
-
 
 # Custom CSS for background image
 st.markdown(
