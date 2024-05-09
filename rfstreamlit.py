@@ -12,6 +12,30 @@ def detect_csv_separator(sample_data):
     else:
         return b';'
 
+def convert_frequency_to_mhz(frequency):
+    """Converts frequency to MHz and ensures 9 digits total (3 digits + 6 decimal places)."""
+    # Count the number of digits in the frequency
+    num_digits = len(str(int(frequency)))
+    
+    if num_digits > 9:
+        # If more than 9 digits, divide by 10 until it has exactly 9 digits
+        while num_digits > 9:
+            frequency /= 10
+            num_digits -= 1
+    elif num_digits < 9:
+        # If fewer than 9 digits, multiply by 10 until it has exactly 9 digits
+        while num_digits < 9:
+            frequency *= 10
+            num_digits += 1
+    
+    # Format the frequency to have 3 integer digits and 6 decimal places
+    formatted_frequency = f"{frequency:.6f}"
+    
+    # Convert the formatted frequency to MHz by dividing by 1000000
+    frequency_mhz = float(formatted_frequency) / 1000000
+    
+    return f"{frequency_mhz:.6f}"
+
 def convert_csv_content(csv_file):
     """Convert CSV content to the desired format."""
     # Read CSV file as bytes and decode to string
@@ -27,27 +51,14 @@ def convert_csv_content(csv_file):
     converted_data = []
     
     for index, row in df.iterrows():
-        frequency = str(row.iloc[0]).strip()  # Frequency from first column
+        frequency = float(str(row.iloc[0]).strip())  # Frequency from first column
         value = str(row.iloc[1]).strip() if len(row) > 1 else ''  # Value from second column (if exists)
         
-        # Format the frequency and convert to float
-        if '.' in frequency:
-            # Split frequency into integer and decimal parts
-            int_part, dec_part = frequency.split('.')
-            # Format frequency with 6 decimal places and convert to float
-            formatted_frequency = f"{int_part}.{dec_part[:6].ljust(6, '0')}"
-        else:
-            # Add .000000 if frequency doesn't have decimal part
-            formatted_frequency = f"{frequency}.000000"
-        
-        # Convert formatted frequency to float and divide by 1000000
-        frequency_float = float(formatted_frequency) / 1000000
-        
-        # Format the frequency to have 3 integer digits and 6 decimal places
-        formatted_frequency_output = f"{frequency_float:.6f}"
+        # Convert frequency to MHz and ensure 9 digits total
+        formatted_frequency_mhz = convert_frequency_to_mhz(frequency)
         
         # Append the formatted line to converted_data
-        converted_data.append(f"{formatted_frequency_output}, {value}")
+        converted_data.append(f"{formatted_frequency_mhz}, {value}")
     
     return '\n'.join(converted_data)
 
