@@ -77,5 +77,5 @@ if uploaded_files:
         st.session_state.processed_files = True
 
 total_count = total_files_processed(conn)
-st.write(f"Total files processed by all users: {total_count}")
+st.write(f"Total files processed by users: {total_count}")
 conn.close()
