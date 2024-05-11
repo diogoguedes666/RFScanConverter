@@ -4,14 +4,7 @@ import base64
 import io
 import sqlite3
 
-# Custom CSS to hide the Streamlit footer
-hide_footer_style = """
-    <style>
-        .stAppFooter {
-            display: none !important;
-        }
-    </style>
-"""
+
 
 # Initialize session state for tracking if files have been processed
 if 'processed_files' not in st.session_state:
@@ -64,8 +57,6 @@ def convert_csv_content(csv_file):
         converted_data.append(f"{frequency}, {value}")
     return '\n'.join(converted_data)
 
-# Inject custom CSS to hide the Streamlit footer
-st.markdown(hide_footer_style, unsafe_allow_html=True)
 
 # Streamlit UI setup
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
