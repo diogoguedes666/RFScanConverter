@@ -4,6 +4,15 @@ import base64
 import io
 import sqlite3
 
+# Custom CSS to hide the Streamlit footer
+hide_footer_style = """
+    <style>
+        .stAppFooter {
+            display: none !important;
+        }
+    </style>
+"""
+
 # Initialize session state for tracking if files have been processed
 if 'processed_files' not in st.session_state:
     st.session_state.processed_files = False
