@@ -4,37 +4,33 @@ import base64
 import io
 import sqlite3
 
-
-
-# Initialize session state for tracking if files have been processed
+# Initialize session state for tracking if files have been processed and total count
 if 'processed_files' not in st.session_state:
     st.session_state.processed_files = False
+if 'total_count' not in st.session_state:
+    st.session_state.total_count = 0
 
 # Database setup
-def create_connection():
+@st.cache_resource
+def init_db():
     conn = sqlite3.connect('file_count.db')
+    with conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS file_count (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                count INTEGER NOT NULL DEFAULT 1
+            )
+        ''')
     return conn
 
-def create_table(conn):
-    c = conn.cursor()
-    c.execute('''
-      CREATE TABLE IF NOT EXISTS file_count (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          count INTEGER NOT NULL DEFAULT 1
-      )
-    ''')
-    conn.commit()
+def increment_file_count():
+    with init_db() as conn:
+        conn.execute('INSERT INTO file_count (count) VALUES (1)')
 
-def increment_file_count(conn):
-    c = conn.cursor()
-    c.execute('INSERT INTO file_count (count) VALUES (1)')
-    conn.commit()
-
-def total_files_processed(conn):
-    c = conn.cursor()
-    c.execute('SELECT SUM(count) FROM file_count')
-    total = c.fetchone()[0]
-    return total if total else 0
+def total_files_processed():
+    with init_db() as conn:
+        result = conn.execute('SELECT SUM(count) FROM file_count').fetchone()
+        return result[0] if result[0] else 0
 
 # CSV processing
 def detect_csv_separator(sample_data):
@@ -57,11 +53,8 @@ def convert_csv_content(csv_file):
         converted_data.append(f"{frequency}, {value}")
     return '\n'.join(converted_data)
 
-
 # Streamlit UI setup
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
-conn = create_connection()
-create_table(conn)
 
 image_url = "https://i.postimg.cc/9FTzQjqf/monsterlogo.png"
 st.markdown(f'<img src="{image_url}" style="display: block; margin-left: auto; margin-right: auto; width: 50%;" />', unsafe_allow_html=True)
@@ -76,9 +69,8 @@ if uploaded_files:
             b64 = base64.b64encode(converted_data.encode()).decode()
             href = f'<a href="data:file/txt;base64,{b64}" download="{uploaded_file.name}_OK.txt">Download {uploaded_file.name}_OK.txt</a>'
             st.markdown(href, unsafe_allow_html=True)
-            increment_file_count(conn)
+            increment_file_count()
         st.session_state.processed_files = True
 
-total_count = total_files_processed(conn)
-st.write(f"Total files processed by users: {total_count}")
-conn.close()
+st.session_state.total_count = total_files_processed()
+st.write(f"Total files processed by users: {st.session_state.total_count}")
