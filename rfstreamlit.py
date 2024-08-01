@@ -11,31 +11,38 @@ if 'total_count' not in st.session_state:
     st.session_state.total_count = 0
 
 # Database setup
-@st.cache_resource
-def init_db():
+def create_connection():
     conn = sqlite3.connect('file_count.db')
     return conn
 
 def create_table(conn):
-    c = conn.cursor()
-    c.execute('''
-      CREATE TABLE IF NOT EXISTS file_count (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          count INTEGER NOT NULL DEFAULT 1
-      )
-    ''')
-    conn.commit()
+    with conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS file_count (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                count INTEGER NOT NULL DEFAULT 1
+            )
+        ''')
 
 def increment_file_count(conn):
-    c = conn.cursor()
-    c.execute('INSERT INTO file_count (count) VALUES (1)')
-    conn.commit()
+    with conn:
+        conn.execute('INSERT INTO file_count (count) VALUES (1)')
 
 def total_files_processed(conn):
-    c = conn.cursor()
-    c.execute('SELECT SUM(count) FROM file_count')
-    total = c.fetchone()[0]
-    return total if total else 0
+    with conn:
+        result = conn.execute('SELECT SUM(count) FROM file_count').fetchone()
+        return result[0] if result[0] else 0
+
+# Load count on start and save to session state
+def load_total_count():
+    conn = create_connection()
+    create_table(conn)
+    total_count = total_files_processed(conn)
+    conn.close()
+    return total_count
+
+if 'total_count' not in st.session_state:
+    st.session_state.total_count = load_total_count()
 
 # CSV processing
 def detect_csv_separator(sample_data):
@@ -59,6 +66,16 @@ def convert_csv_content(csv_file):
         converted_data.append(f"{formatted_frequency}, {value}")
     return '\n'.join(converted_data)
 
+def format_frequency(frequency):
+    # Adjust the frequency to have 3 digits before the decimal point
+    while frequency < 100:
+        frequency *= 10
+    while frequency >= 1000:
+        frequency /= 10
+    
+    # Format to XXX.XXXXXX with exactly 6 digits after the decimal point
+    formatted_frequency = f"{frequency:.6f}"
+    return formatted_frequency
 
 # Streamlit UI setup
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
@@ -78,9 +95,9 @@ if uploaded_files:
             b64 = base64.b64encode(converted_data.encode()).decode()
             href = f'<a href="data:file/txt;base64,{b64}" download="{uploaded_file.name}_OK.txt">Download {uploaded_file.name}_OK.txt</a>'
             st.markdown(href, unsafe_allow_html=True)
-            increment_file_count()
+            increment_file_count(conn)
         st.session_state.processed_files = True
 
-total_count = total_files_processed(conn)
-st.write(f"Total files processed by users: {total_count}")
+st.session_state.total_count = total_files_processed(conn)
+st.write(f"Total files processed by users: {st.session_state.total_count}")
 conn.close()
