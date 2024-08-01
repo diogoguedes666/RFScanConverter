@@ -12,10 +12,10 @@ if 'total_count' not in st.session_state:
 
 # Database setup
 def create_connection():
-    conn = sqlite3.connect('file_count.db')
-    return conn
+    return sqlite3.connect('file_count.db')
 
-def create_table(conn):
+def create_table():
+    conn = create_connection()
     with conn:
         conn.execute('''
             CREATE TABLE IF NOT EXISTS file_count (
@@ -23,23 +23,25 @@ def create_table(conn):
                 count INTEGER NOT NULL DEFAULT 1
             )
         ''')
+    conn.close()
 
-def increment_file_count(conn):
+def increment_file_count():
+    conn = create_connection()
     with conn:
         conn.execute('INSERT INTO file_count (count) VALUES (1)')
+    conn.close()
 
-def total_files_processed(conn):
+def total_files_processed():
+    conn = create_connection()
     with conn:
         result = conn.execute('SELECT SUM(count) FROM file_count').fetchone()
-        return result[0] if result[0] else 0
+    conn.close()
+    return result[0] if result[0] else 0
 
 # Load count on start and save to session state
 def load_total_count():
-    conn = create_connection()
-    create_table(conn)
-    total_count = total_files_processed(conn)
-    conn.close()
-    return total_count
+    create_table()
+    return total_files_processed()
 
 if 'total_count' not in st.session_state:
     st.session_state.total_count = load_total_count()
@@ -86,8 +88,6 @@ st.title("TinySA/RF Explorer to Wireless Workbench Converter")
 st.markdown("by [monsterDSP](https://instagram.com/monsterdsp)")
 uploaded_files = st.file_uploader("Select Multiple .CSV Files", accept_multiple_files=True, type='csv')
 
-conn = create_connection()
-
 if uploaded_files:
     if not st.session_state.processed_files:
         for uploaded_file in uploaded_files:
@@ -95,9 +95,8 @@ if uploaded_files:
             b64 = base64.b64encode(converted_data.encode()).decode()
             href = f'<a href="data:file/txt;base64,{b64}" download="{uploaded_file.name}_OK.txt">Download {uploaded_file.name}_OK.txt</a>'
             st.markdown(href, unsafe_allow_html=True)
-            increment_file_count(conn)
+            increment_file_count()
         st.session_state.processed_files = True
 
-st.session_state.total_count = total_files_processed(conn)
+st.session_state.total_count = total_files_processed()
 st.write(f"Total files processed by users: {st.session_state.total_count}")
-conn.close()
