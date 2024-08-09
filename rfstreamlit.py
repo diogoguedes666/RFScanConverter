@@ -88,13 +88,22 @@ def convert_csv_content(csv_file):
     csv_content_str = csv_content.decode('utf-8')
     csv_separator = detect_csv_separator(csv_content)
     df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'), header=None)
+
     converted_data = []
     for index, row in df.iterrows():
-        frequency = float(row.iloc[0])
+        frequency = row.iloc[0]
+        if isinstance(frequency, str):
+            frequency = float(frequency.replace(',', '.'))  # Convert to float if it's a string
+        value = row.iloc[1]
+        if isinstance(value, str):
+            value = float(value.replace(',', '.'))  # Convert to float if it's a string
+        
         formatted_frequency = format_frequency(frequency)
-        value = row.iloc[1] if len(row) > 1 else ''
-        converted_data.append(f"{formatted_frequency}, {value}")
+        converted_data.append(f"{formatted_frequency}, {value:.3f}")
+    
     return '\n'.join(converted_data)
+
+
 
 def format_frequency(frequency):
     # Adjust the frequency to have 3 digits before the decimal point
@@ -106,6 +115,7 @@ def format_frequency(frequency):
     # Format to XXX.XXXXXX with exactly 6 digits after the decimal point
     formatted_frequency = f"{frequency:.6f}"
     return formatted_frequency
+
 
 def create_zip(files_dict):
     buffer = BytesIO()
