@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import base64
 import io
-import sqlite3
 import zipfile
 from io import BytesIO
+import os
 
 # Set page configuration as the first Streamlit command
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
@@ -32,47 +32,49 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Initialize session state for tracking if files have been processed and total count
+# Initialize session state for tracking if files have been processed
 if 'processed_files' not in st.session_state:
     st.session_state.processed_files = False
+
+# Counter file handling
+COUNTER_FILE = "file_counter.txt"
+INIT_FLAG_FILE = "counter_initialized.flag"
+
+def is_counter_initialized():
+    return os.path.exists(INIT_FLAG_FILE)
+
+def mark_counter_initialized():
+    with open(INIT_FLAG_FILE, "w") as f:
+        f.write("initialized")
+
+def read_counter():
+    try:
+        with open(COUNTER_FILE, "r") as f:
+            return int(f.read().strip() or 0)
+    except FileNotFoundError:
+        if not is_counter_initialized():
+            # Only start from 141 if counter has never been initialized
+            initial_count = 141
+            mark_counter_initialized()
+            save_counter(initial_count)
+            return initial_count
+        else:
+            # If counter was initialized before but file is missing, 
+            # continue from last known value in session state
+            return getattr(st.session_state, 'total_count', 141)
+
+def save_counter(count):
+    with open(COUNTER_FILE, "w") as f:
+        f.write(str(count))
+
+# Initialize counter from file
 if 'total_count' not in st.session_state:
-    st.session_state.total_count = 0
+    st.session_state.total_count = read_counter()
 
-# Database setup
-def create_connection():
-    return sqlite3.connect('file_count.db')
-
-def create_table():
-    conn = create_connection()
-    with conn:
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS file_count (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                count INTEGER NOT NULL DEFAULT 1
-            )
-        ''')
-    conn.close()
-
+# Function to increment the counter
 def increment_file_count():
-    conn = create_connection()
-    with conn:
-        conn.execute('INSERT INTO file_count (count) VALUES (1)')
-    conn.close()
-
-def total_files_processed():
-    conn = create_connection()
-    with conn:
-        result = conn.execute('SELECT SUM(count) FROM file_count').fetchone()
-    conn.close()
-    return result[0] if result[0] else 0
-
-# Load count on start and save to session state
-def load_total_count():
-    create_table()
-    return total_files_processed()
-
-if 'total_count' not in st.session_state:
-    st.session_state.total_count = load_total_count()
+    st.session_state.total_count += 1
+    save_counter(st.session_state.total_count)
 
 # CSV processing
 def detect_csv_separator(sample_data):
@@ -87,12 +89,25 @@ def convert_csv_content(csv_file):
     csv_content = csv_file.read()
     csv_content_str = csv_content.decode('utf-8')
     csv_separator = detect_csv_separator(csv_content)
-    df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'), header=None)
+    
+    # Try to read with headers first
+    df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'))
+    
+    # If the first row contains 'Frequency' in it, it's a header row
+    if 'Frequency' in str(df.columns[0]):
+        # Read again with proper header handling
+        df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'))
+    else:
+        # No headers, read without them
+        df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'), header=None)
 
     converted_data = []
     for index, row in df.iterrows():
         frequency = row.iloc[0]
         if isinstance(frequency, str):
+            # Skip header row if it somehow got through
+            if 'frequency' in frequency.lower():
+                continue
             frequency = float(frequency.replace(',', '.'))  # Convert to float if it's a string
         value = row.iloc[1]
         if isinstance(value, str):
@@ -167,5 +182,7 @@ if uploaded_files:
         '''
         st.markdown(href_zip, unsafe_allow_html=True)
 
-st.session_state.total_count = total_files_processed()
+# Display total count using session state
 st.write(f"Total files processed by users: {st.session_state.total_count}")
+
+
