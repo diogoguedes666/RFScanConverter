@@ -5,6 +5,12 @@ import io
 import zipfile
 from io import BytesIO
 import os
+from supabase import create_client
+
+# Supabase setup
+supabase_url = st.secrets["SUPABASE_URL"]
+supabase_key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(supabase_url, supabase_key)
 
 # Set page configuration as the first Streamlit command
 st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
@@ -36,45 +42,37 @@ st.markdown(
 if 'processed_files' not in st.session_state:
     st.session_state.processed_files = False
 
-# Counter file handling
-COUNTER_FILE = "file_counter.txt"
-INIT_FLAG_FILE = "counter_initialized.flag"
-
-def is_counter_initialized():
-    return os.path.exists(INIT_FLAG_FILE)
-
-def mark_counter_initialized():
-    with open(INIT_FLAG_FILE, "w") as f:
-        f.write("initialized")
-
-def read_counter():
+# Counter handling with Supabase
+def get_counter():
     try:
-        with open(COUNTER_FILE, "r") as f:
-            return int(f.read().strip() or 0)
-    except FileNotFoundError:
-        if not is_counter_initialized():
-            # Only start from 141 if counter has never been initialized
-            initial_count = 141
-            mark_counter_initialized()
-            save_counter(initial_count)
-            return initial_count
+        response = supabase.table('scan_counter').select('counter_value').single().execute()
+        if response.data:
+            return response.data['counter_value']
         else:
-            # If counter was initialized before but file is missing, 
-            # continue from last known value in session state
-            return getattr(st.session_state, 'total_count', 141)
+            # Initialize counter in Supabase if it doesn't exist
+            supabase.table('scan_counter').insert({'counter_value': 141}).execute()
+            return 141
+    except Exception as e:
+        st.error(f"Error accessing counter: {str(e)}")
+        return 141
 
-def save_counter(count):
-    with open(COUNTER_FILE, "w") as f:
-        f.write(str(count))
+def increment_counter():
+    try:
+        current_count = get_counter()
+        new_count = current_count + 1
+        supabase.table('scan_counter').update({'counter_value': new_count}).eq('id', 1).execute()
+        return new_count
+    except Exception as e:
+        st.error(f"Error incrementing counter: {str(e)}")
+        return current_count + 1
 
-# Initialize counter from file
+# Initialize counter from Supabase
 if 'total_count' not in st.session_state:
-    st.session_state.total_count = read_counter()
+    st.session_state.total_count = get_counter()
 
 # Function to increment the counter
 def increment_file_count():
-    st.session_state.total_count += 1
-    save_counter(st.session_state.total_count)
+    st.session_state.total_count = increment_counter()
 
 # CSV processing
 def detect_csv_separator(sample_data):
