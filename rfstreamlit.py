@@ -25,9 +25,10 @@ st.markdown(
     <style>
     :root {
         color-scheme: dark;
-        --background-color: #000000;
-        --background-secondary: #111111;
-        --background-tertiary: #1a1a1a;
+        --background-color: #0a0a0a;
+        --background-secondary: #1a1a1a;
+        --background-tertiary: #2a2a2a;
+        --background-card: #1e1e1e;
         --text-color: #ffffff;
         --text-secondary: #9ca3af;
         --text-muted: #6b7280;
@@ -41,15 +42,140 @@ st.markdown(
         --border-neutral: #1f2937;
     }
     body {
-        background: linear-gradient(to bottom right, var(--background-color), var(--background-secondary), var(--background-color));
-        color: var(--text-color);
+        background: linear-gradient(to bottom right, var(--background-color), var(--background-secondary), var(--background-color)) !important;
+        color: var(--text-color) !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica", Arial, sans-serif;
         font-size: 14px;
     }
 
+    /* Force dark theme and override Streamlit light mode */
+    html, body, .stApp {
+        background: var(--background-color) !important;
+        color: var(--text-color) !important;
+    }
+
+    /* Override all Streamlit containers */
+    .stApp, .main, [data-testid="stApp"], [data-testid="stMain"] {
+        background: var(--background-color) !important;
+        background-image: none !important;
+    }
+
+    /* Override sidebar */
+    .sidebar, .sidebar .sidebar-content, [data-testid="stSidebar"] {
+        background: var(--background-secondary) !important;
+    }
+
+    /* Override all form elements and inputs */
+    .stTextInput input, .stSelectbox select, .stTextArea textarea, .stNumberInput input {
+        background: var(--background-tertiary) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Override checkboxes and radio buttons */
+    .stCheckbox, .stRadio {
+        background: transparent !important;
+    }
+
+    .stCheckbox label, .stRadio label {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Override all buttons */
+    .stButton button {
+        background: var(--background-tertiary) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Override tooltips and popovers */
+    .stTooltip, [data-testid="tooltip"] {
+        background: var(--background-card) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Override progress bars */
+    .stProgress > div > div {
+        background: var(--primary-color) !important;
+    }
+
+    /* Override tabs */
+    .stTabs [data-baseweb="tab"] {
+        background: var(--background-tertiary) !important;
+        color: var(--text-secondary) !important;
+    }
+
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: var(--background-card) !important;
+        color: var(--text-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    /* Override expanders */
+    .streamlit-expander {
+        background: var(--background-tertiary) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Override alerts and messages */
+    .stAlert, .stSuccess, .stInfo, .stWarning, .stError {
+        background: var(--background-tertiary) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Override dataframes and tables */
+    .stDataFrame, table {
+        background: var(--background-card) !important;
+    }
+
+    th, td {
+        background: var(--background-card) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Override metrics */
+    .stMetric {
+        background: var(--background-tertiary) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--gray-800) !important;
+    }
+
+    /* Ultimate dark theme enforcement - override any light backgrounds */
+    [style*="background-color: rgb(255"] {
+        background-color: var(--background-color) !important;
+    }
+
+    [style*="background-color: #fff"] {
+        background-color: var(--background-color) !important;
+    }
+
+    [style*="background-color: white"] {
+        background-color: var(--background-color) !important;
+    }
+
+    [style*="background: rgb(255"] {
+        background: var(--background-color) !important;
+    }
+
+    [style*="background: #fff"] {
+        background: var(--background-color) !important;
+    }
+
+    [style*="background: white"] {
+        background: var(--background-color) !important;
+    }
+
+    /* Force dark theme on all elements */
+    * {
+        color-scheme: dark !important;
+    }
+
     /* Main container styling */
     .main {
-        background: var(--background-color);
+        background: var(--background-color) !important;
         padding-top: 2rem; /* add breathing room so hero isn't cut off */
     }
     .block-container {
@@ -96,7 +222,7 @@ st.markdown(
 
     /* File uploader styling */
     .stFileUploader {
-        background: linear-gradient(135deg, var(--background-tertiary) 0%, rgba(26, 26, 26, 0.9) 100%);
+        background: linear-gradient(135deg, var(--background-tertiary) 0%, var(--background-secondary) 100%);
         border: 2px dashed rgba(168, 85, 247, 0.4);
         border-radius: 16px;
         padding: 2rem;
@@ -107,7 +233,7 @@ st.markdown(
 
     .stFileUploader:hover {
         border-color: var(--purple-400);
-        background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(26, 26, 26, 0.95) 100%);
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, var(--background-secondary) 100%);
         transform: translateY(-2px);
         box-shadow: 0 12px 40px rgba(168, 85, 247, 0.15);
     }
@@ -387,7 +513,7 @@ st.markdown(
 
     /* Spectrum preview styling */
     .spectrum-container {
-        background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(31, 41, 55, 0.8) 100%);
+        background: linear-gradient(135deg, var(--background-tertiary) 0%, var(--background-card) 100%);
         border: 1px solid rgba(168, 85, 247, 0.25);
         border-radius: 20px;
         padding: 2rem;
@@ -615,8 +741,8 @@ def create_spectrum_plot(spectrum_data_dict, active_files, title="Spectrum Analy
         xaxis_title=f"Frequency ({display_unit})",
         yaxis_title="Amplitude",
         template="plotly_dark",
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(10, 10, 10, 1)',
+        paper_bgcolor='rgba(10, 10, 10, 1)',
         font=dict(color='white'),
         hovermode='closest',
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -630,12 +756,12 @@ def create_spectrum_plot(spectrum_data_dict, active_files, title="Spectrum Analy
         tickmode="auto",
         nticks=10,
         showgrid=True,
-        gridcolor='rgba(128,128,128,0.2)',
+        gridcolor='rgba(42, 42, 42, 0.3)',
         tickfont=dict(size=10)
     )
     fig.update_yaxes(
         showgrid=True,
-        gridcolor='rgba(128,128,128,0.2)',
+        gridcolor='rgba(42, 42, 42, 0.3)',
         tickfont=dict(size=10)
     )
 
@@ -784,6 +910,6 @@ if uploaded_files:
         st.markdown(f'</div>', unsafe_allow_html=True)
 
 # Display total count using session state
-st.markdown(f'<div style="text-align: center; margin-top: 2rem; padding: 0.75rem; background: rgba(17, 24, 39, 0.5); border-radius: 12px; border: 1px solid #1f2937; border-left: 4px solid #a855f7;"><p style="color: #9ca3af; font-size: 0.875rem; margin: 0;"><span style="color: #a855f7; font-weight: 600;">Total files processed by users:</span> <span style="color: #ffffff; font-weight: bold; font-size: 1.125rem;">{st.session_state.total_count}</span></p></div>', unsafe_allow_html=True)
+st.markdown(f'<div style="text-align: center; margin-top: 2rem; padding: 0.75rem; background: var(--background-tertiary); border-radius: 12px; border: 1px solid var(--gray-800); border-left: 4px solid var(--primary-color);"><p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;"><span style="color: var(--primary-color); font-weight: 600;">Total files processed by users:</span> <span style="color: var(--text-color); font-weight: bold; font-size: 1.125rem;">{st.session_state.total_count}</span></p></div>', unsafe_allow_html=True)
 
 
