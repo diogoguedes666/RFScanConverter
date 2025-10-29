@@ -1,43 +1,7 @@
-import io
-from pathlib import Path
-
-import pandas as pd
 import streamlit as st
 
 
-def detect_csv_separator(sample_data: bytes) -> bytes:
-    """Detect the most likely CSV separator used in the file."""
-    if b";" in sample_data and b"," not in sample_data:
-        return b";"
-    if b"," in sample_data and b";" not in sample_data:
-        return b",";
-    return b";"
-
-
-def convert_csv_content(uploaded_file) -> str:
-    """Convert CSV content and return it as a formatted string."""
-    raw_bytes = uploaded_file.read()
-    uploaded_file.seek(0)
-    csv_content_str = raw_bytes.decode("utf-8")
-
-    csv_separator = detect_csv_separator(raw_bytes)
-
-    df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode("utf-8"))
-
-    converted_rows = []
-    for _, row in df.iterrows():
-        frequency = str(row.iloc[0]).strip()
-        value = str(row.iloc[1]).strip() if len(row) > 1 else ""
-
-        if "." in frequency:
-            int_part, dec_part = frequency.split(".", maxsplit=1)
-            formatted_frequency = f"{int_part[:3]}.{dec_part[:6].ljust(6, '0')}"
-        else:
-            formatted_frequency = frequency.ljust(10)
-
-        converted_rows.append(f"{formatted_frequency}, {value}")
-
-    return "\n".join(converted_rows)
+ 
 
 
 st.set_page_config(
@@ -46,8 +10,7 @@ st.set_page_config(
     layout="wide",
 )
 
-if "tool_open" not in st.session_state:
-    st.session_state.tool_open = False
+ 
 
 st.markdown(
     """
@@ -125,9 +88,15 @@ st.markdown(
     }
     .hero-stats {
         display: flex;
-        gap: 1.75rem;
-        margin-top: 2.5rem;
+        justify-content: center;
+        align-items: center;
+        gap: 2.5rem;
+        margin-top: 3rem;
+        margin-bottom: 2rem;
         flex-wrap: wrap;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
     }
     .hero-stats span {
         display: flex;
@@ -189,11 +158,11 @@ st.markdown(
         box-shadow: 0 0 12px rgba(96, 165, 250, 0.8);
     }
     .stButton > button {
-        width: 100%;
+        width: auto; /* reduced width */
         font-size: 1.22rem;
         font-weight: 650;
         letter-spacing: 0.08em;
-        padding: 1.18rem 1.6rem;
+        padding: 1.18rem 2.6rem;
         border-radius: 999px;
         border: none;
         color: #020617;
@@ -204,6 +173,39 @@ st.markdown(
         transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
         text-transform: uppercase;
         animation: glowPulse 3.4s ease-in-out infinite;
+    }
+    .cta-button {
+        display: inline-block;
+        font-size: 1.22rem;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        padding: 1.18rem 2.6rem;
+        min-width: 280px;
+        border-radius: 999px;
+        border: none;
+        color: #020617;
+        background: linear-gradient(135deg, #F8FAFC 5%, #E2E8F0 38%, #C7D2FE 78%, #A855F7 100%);
+        box-shadow:
+            0 22px 38px rgba(99, 102, 241, 0.32),
+            0 0 0 1px rgba(226, 232, 240, 0.32);
+        transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+        text-transform: uppercase;
+        animation: glowPulse 3.4s ease-in-out infinite;
+        text-decoration: none;
+        text-align: center;
+    }
+    .cta-button:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow:
+            0 30px 60px rgba(129, 140, 248, 0.38),
+            0 0 0 1px rgba(148, 163, 255, 0.6);
+        filter: brightness(1.05);
+    }
+    .cta-button:active {
+        transform: scale(0.993);
+        box-shadow:
+            0 18px 35px rgba(67, 56, 202, 0.28),
+            0 0 0 1px rgba(148, 163, 255, 0.55);
     }
     @keyframes glowPulse {
         0% {
@@ -346,9 +348,12 @@ st.markdown(
 
 cta_columns = st.columns([1, 6, 1], gap="large")
 with cta_columns[1]:
-    cta_clicked = st.button("OPEN FREE RF TOOL", key="cta_primary", use_container_width=True)
     st.markdown(
-        '<div class="cta-note" style="text-align: center;">Acesso 100% gratuito. Use em <b><u><a href="https://www.monsterdsp.com/shop/rfconverter" target="_blank" style="color:inherit;text-decoration:underline;">monsterdsp.com/shop/rfconverter</a></u></b>. Apoie a monsterDSP — compre nossos plugins.</div>',
+        '<div style="text-align:center;"><a href="https://www.monsterdsp.com/shop/rfconverter" class="cta-button">OPEN FREE RF TOOL</a></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="cta-note" style="text-align: center;">Acesso 100% gratuito. Use em <b><u><a href="https://www.monsterdsp.com/shop/rfconverter" style="color:inherit;text-decoration:underline;">monsterdsp.com/shop/rfconverter</a></u></b>. Apoie a monsterDSP — compre nossos plugins.</div>',
         unsafe_allow_html=True,
     )
 
@@ -366,11 +371,6 @@ st.markdown(
                 orçamento apertado. Faça upload do seu scan do TinySA (ou RF Explorer), veja o espectro na hora
                 e baixe o arquivo no formato do Wireless Workbench em segundos.
             </p>
-            <div class="hero-stats">
-                <span><strong>12k+</strong> scans TinySA/RF Explorer processadas</span>
-                <span><strong>Poucos segundos</strong> para visualizar espectro + exportar</span>
-                <span><strong>100%</strong> gratuito — sem login</span>
-            </div>
         </div>
         <div class="hero-card">
             <h3 style="color: white;">RF Converter: por que você precisa?</h3>
@@ -384,6 +384,11 @@ st.markdown(
                 <li>Faz em segundos o que humanos não fazem em minutos — sobra tempo para um café (ou um baseadinho)</li>
             </ul>
         </div>
+    </div>
+    <div class="hero-stats">
+        <span><strong>12k+</strong> scans TinySA/RF Explorer processadas</span>
+        <span><strong>Poucos segundos</strong> para visualizar espectro + exportar</span>
+        <span><strong>100%</strong> gratuito — sem login</span>
     </div>
     """,
     unsafe_allow_html=True,
@@ -401,46 +406,4 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if cta_clicked:
-    st.session_state.tool_open = True
-
-if st.session_state.tool_open:
-    st.markdown('<div class="tool-card" id="rf-tool"><div class="tool-card-inner">', unsafe_allow_html=True)
-    st.markdown(
-        """
-        <h2>Conversor TinySA → Wireless Workbench</h2>
-        <p>
-            Faça upload de um ou mais arquivos `.csv`. Em segundos você recebe um `.txt` calibrado,
-            pronto para distribuir para o time de RF ou importar direto no Workbench.
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
-    uploaded_files = st.file_uploader(
-        "Selecione um ou vários arquivos `.csv` para converter",
-        accept_multiple_files=True,
-        type="csv",
-        key="csv_uploader",
-    )
-
-    if uploaded_files:
-        st.markdown(
-            """<div class="conversion-lede">Cada download leva o selo monsterDSP de precisão. Compartilhe com confiança.</div>""",
-            unsafe_allow_html=True,
-        )
-        for uploaded_file in uploaded_files:
-            converted_data = convert_csv_content(uploaded_file)
-            download_name = f"{Path(uploaded_file.name).stem}_OK.txt"
-            st.markdown(
-                f"""<div class=\"conversion-result\"><h4>{download_name}</h4><span>Pronto para subir no Wireless Workbench</span>""",
-                unsafe_allow_html=True,
-            )
-            st.download_button(
-                label=f"Baixar {download_name}",
-                data=converted_data,
-                file_name=download_name,
-                mime="text/plain",
-                key=f"download_{download_name}",
-            )
-            st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div></div>", unsafe_allow_html=True)
+ 
