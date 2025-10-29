@@ -130,7 +130,7 @@ with col2:
     # Logo
     st.markdown("""
     <div style="text-align: center; margin: 2rem 0 3rem 0;">
-        <img src="https://i.postimg.cc/CK1NXb3j/monster-DSPlogo.png"
+        <img src="https://www.monsterdsp.com/images/rfconverter-logo.png"
              style="width: 300px; max-width: 100%; filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.4));">
     </div>
     """, unsafe_allow_html=True)
