@@ -1,9 +1,8 @@
 import streamlit as st
-import time
 
 # Set page configuration
 st.set_page_config(
-    page_title="Redirecting to monsterDSP...",
+    page_title="RF Scan Converter - monsterDSP",
     page_icon="🚀",
     layout="centered"
 )
@@ -16,150 +15,170 @@ footer {visibility: hidden;}
 header {visibility: hidden;}
 
 body {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    background: #1a1a1a;
     color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .stApp {
     background: transparent;
 }
+
+.hero-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(168, 85, 247, 0.05);
+    border-radius: 24px;
+    border: 1px solid rgba(168, 85, 247, 0.1);
+    margin: 2rem 0;
+    backdrop-filter: blur(10px);
+}
+
+.feature-description {
+    font-size: 1.2rem;
+    color: #e5e7eb;
+    margin: 1.5rem 0;
+    line-height: 1.6;
+}
+
+.cta-button {
+    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
+    color: white !important;
+    padding: 1.25rem 2.5rem !important;
+    border-radius: 16px !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    text-decoration: none !important;
+    animation: glow 2s ease-in-out infinite alternate !important;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 40px rgba(168, 85, 247, 0.6) !important;
+    animation: none !important;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
+    }
+    to {
+        box-shadow: 0 8px 32px rgba(168, 85, 247, 0.7);
+    }
+}
+
+.badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.product-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, #a855f7, #c084fc, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.description {
+    font-size: 1.1rem;
+    color: #9ca3af;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.footer-text {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.footer-text a {
+    color: #a855f7;
+    text-decoration: none;
+}
+
+.footer-text a:hover {
+    text-decoration: underline;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Create a centered, beautiful redirect page using Streamlit components
-col1, col2, col3 = st.columns([1, 2, 1])
+# Main content
+col1, col2, col3 = st.columns([1, 3, 1])
 
 with col2:
     # Logo
     st.markdown("""
-    <div style="text-align: center; margin: 3rem 0 2rem 0;">
-        <img src="https://i.postimg.cc/CK1NXb3j/monster-DSPlogo.png" 
-             style="width: 280px; max-width: 100%; filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3));">
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Title with gradient
-    st.markdown("""
-    <h1 style="
-        text-align: center;
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        background: linear-gradient(135deg, #a855f7, #c084fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    ">RF Scan Converter</h1>
-    """, unsafe_allow_html=True)
-    
-    # Subtitle
-    st.markdown("""
-    <p style="
-        text-align: center;
-        font-size: 1.1rem;
-        color: #9ca3af;
-        margin-bottom: 2.5rem;
-        line-height: 1.6;
-    ">We've moved to our official website with enhanced features</p>
-    """, unsafe_allow_html=True)
-    
-    # Countdown box
-    st.markdown("""
-    <div style="
-        text-align: center;
-        background: rgba(168, 85, 247, 0.1);
-        border: 2px solid rgba(168, 85, 247, 0.3);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    ">
-        <div style="font-size: 1rem; color: #9ca3af; margin-bottom: 0.5rem;">
-            Click the button below to continue
-        </div>
-        <div id="countdown" style="font-size: 4rem; font-weight: bold; color: #a855f7; margin: 1rem 0;">
-            3
-        </div>
-        <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem; font-style: italic;">
-            Auto-redirect will attempt in <span id="countdown-inline">3</span> seconds
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Button using Streamlit's link_button (most reliable)
-    st.markdown("""
-    <style>
-    div.stButton > button {
-        width: 100%;
-        background: linear-gradient(135deg, #a855f7, #9333ea) !important;
-        color: white !important;
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1.1rem;
-        border: none;
-        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        animation: pulse 2s infinite;
-    }
-    
-    div.stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
-        animation: none;
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
-        }
-        50% {
-            box-shadow: 0 4px 25px rgba(168, 85, 247, 0.5);
-        }
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Use st.link_button for reliable external navigation
-    st.link_button("🚀 VISIT ENHANCED RF CONVERTER", "https://www.monsterdsp.com/shop/rfconverter", use_container_width=True)
-    
-    # URL info
-    st.markdown("""
-    <div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: #6b7280;">
-        Redirecting to: <strong style="color: #a855f7;">www.monsterdsp.com/shop/rfconverter</strong>
+    <div style="text-align: center; margin: 2rem 0 3rem 0;">
+        <img src="https://i.postimg.cc/CK1NXb3j/monster-DSPlogo.png"
+             style="width: 300px; max-width: 100%; filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.4));">
     </div>
     """, unsafe_allow_html=True)
 
-# Countdown JavaScript
-st.markdown("""
-<script>
-    let countdown = 3;
-    const countdownElement = document.getElementById('countdown');
-    const countdownInline = document.getElementById('countdown-inline');
-    
-    if (countdownElement) {
-        const timer = setInterval(function() {
-            countdown--;
-            
-            if (countdown > 0) {
-                countdownElement.textContent = countdown;
-                if (countdownInline) {
-                    countdownInline.textContent = countdown;
-                }
-            } else {
-                clearInterval(timer);
-                countdownElement.textContent = '→';
-                if (countdownInline) {
-                    countdownInline.textContent = '0';
-                }
-                
-                // Try to find and click the Streamlit button
-                const button = document.querySelector('div.stButton > button');
-                if (button) {
-                    button.click();
-                }
-            }
-        }, 1000);
-    }
-</script>
-""", unsafe_allow_html=True)
+    # Hero section
+    st.markdown("""
+    <div class="hero-section">
+        <div class="badge">FREE TOOL</div>
+        <h1 class="product-title">RF Scan Converter</h1>
+        <p class="feature-description">
+            Convert TinySA/RF Explorer scans to Wireless Workbench format
+        </p>
+        <p class="description">
+            Transform your RF spectrum analysis data into professional wireless coordination format.
+            Compatible with Shure Wireless Workbench for seamless integration with your wireless microphone systems.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # CTA Button
+    st.markdown("""
+    <div style="text-align: center; margin: 2rem 0;">
+        <a href="https://www.monsterdsp.com/shop/rfconverter" class="cta-button" target="_blank">
+            🚀 OPEN FREE TOOL NOW
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Additional info
+    st.markdown("""
+    <div style="text-align: center; margin-top: 3rem;">
+        <p style="color: #9ca3af; font-size: 1rem; margin-bottom: 0.5rem;">
+            ✨ No registration required • Instant access • Professional results
+        </p>
+        <p style="color: #6b7280; font-size: 0.9rem;">
+            Join thousands of audio professionals using monsterDSP tools
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Footer
+    st.markdown("""
+    <div class="footer-text">
+        <p>
+            Visit <a href="https://www.monsterdsp.com" target="_blank">monsterDSP.com</a> for more professional audio tools
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+            © 2025 monsterDSP. All rights reserved.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
