@@ -32,10 +32,10 @@ st.markdown(
     }
     .footer-brand { display:flex; align-items:center; justify-content:center; padding: 2.5rem 0 2.75rem; }
     .footer-brand img { height: 18px; opacity: 0.9; filter: drop-shadow(0 6px 18px rgba(15,23,42,0.55)); }
-    .app-logo { display:flex; justify-content:center; margin: 0.2rem 0 1.5rem; }
+    .app-logo { display:flex; justify-content:center; margin: -0.5rem 0 4rem; }
     .app-logo img { height: clamp(84px, 12vw, 150px); filter: drop-shadow(0 8px 24px rgba(2,6,23,0.55)); }
     .hero-wrapper {
-        padding: 5rem 0 3rem;
+        padding: 7.5rem 0 3rem;
         display: flex;
         align-items: flex-start;
         justify-content: center;
@@ -322,7 +322,7 @@ st.markdown(
     }
     @media (max-width: 900px) {
         .hero-wrapper {
-            padding-top: 3.5rem;
+            padding-top: 4rem;
             gap: 2.5rem;
         }
         .hero-card {
@@ -386,7 +386,7 @@ st.markdown(
         </div>
     </div>
     <div class="hero-stats">
-        <span><strong>12k+</strong> scans TinySA/RF Explorer processadas</span>
+        <span><strong>CENTENAS</strong>de scans TinySA/RF Explorer processados</span>
         <span><strong>Poucos segundos</strong> para visualizar espectro + exportar</span>
         <span><strong>100%</strong> gratuito — sem login</span>
     </div>
@@ -394,7 +394,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Footer brand logo moved before CTA button
+# Footer brand logo at the bottom of the page
 st.markdown(
     """
     <div class=\"footer-brand\">
@@ -405,5 +405,3 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
- 
