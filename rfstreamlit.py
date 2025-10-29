@@ -576,6 +576,20 @@ st.markdown("""
         We've discontinued our Streamlit version and implemented a more powerful RF Scan Converter
         directly on our official website with enhanced features and better performance.
     </p>
+
+    <!-- Countdown Timer -->
+    <div style="text-align: center; margin: 2rem 0; padding: 1.5rem; background: var(--background-tertiary); border-radius: 12px; border: 1px solid var(--gray-800);">
+        <p style="color: var(--text-secondary); font-size: 1rem; margin-bottom: 0.5rem;">
+            🚀 Opening enhanced RF converter in:
+        </p>
+        <div id="countdown" style="font-size: 2.5rem; font-weight: bold; color: var(--primary-color); margin: 0.5rem 0;">
+            3
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">
+            Or click below to go now
+        </p>
+    </div>
+
     <div style="margin: 2rem 0;">
         <a href="https://www.monsterdsp.com/shop/rfconverter" target="_blank" style="
             background: linear-gradient(to right, #a855f7, #9333ea);
@@ -595,14 +609,42 @@ st.markdown("""
         </a>
     </div>
     <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2rem;">
-        You will be redirected to: <strong style="color: var(--primary-color);">www.monsterdsp.com/shop/rfconverter</strong>
+        Opening: <strong style="color: var(--primary-color);">www.monsterdsp.com/shop/rfconverter</strong>
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# Auto-redirect using meta refresh
+# Auto-redirect with countdown
 st.markdown("""
-<meta http-equiv="refresh" content="3; url=https://www.monsterdsp.com/shop/rfconverter">
+<div id="countdown-script" style="display: none;">
+<script>
+    let countdown = 3;
+    const countdownElement = document.getElementById('countdown');
+
+    const timer = setInterval(function() {
+        countdown--;
+        if (countdownElement) {
+            countdownElement.textContent = countdown;
+        }
+
+        if (countdown <= 0) {
+            clearInterval(timer);
+            // Try to redirect the parent window (works around iframe restrictions)
+            try {
+                window.top.location.href = 'https://www.monsterdsp.com/shop/rfconverter';
+            } catch (e) {
+                // Fallback: open in new tab if iframe restrictions prevent redirect
+                window.open('https://www.monsterdsp.com/shop/rfconverter', '_blank');
+                // Show message that redirect happened in new tab
+                if (countdownElement) {
+                    countdownElement.textContent = '→';
+                    countdownElement.style.fontSize = '3rem';
+                }
+            }
+        }
+    }, 1000);
+</script>
+</div>
 """, unsafe_allow_html=True)
 
 
