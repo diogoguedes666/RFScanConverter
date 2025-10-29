@@ -1,23 +1,7 @@
 import streamlit as st
-import pandas as pd
-import base64
-import io
-import zipfile
-from io import BytesIO
-import os
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-import numpy as np
-from supabase import create_client
-
-# Supabase setup
-supabase_url = st.secrets["SUPABASE_URL"]
-supabase_key = st.secrets["SUPABASE_KEY"]
-supabase = create_client(supabase_url, supabase_key)
 
 # Set page configuration as the first Streamlit command
-st.set_page_config(page_title="TinySA/RF Explorer Converter to Wireless Workbench", page_icon=":level_slider:")
+st.set_page_config(page_title="RF Scan Converter - monsterDSP", page_icon=":level_slider:")
 
 # Inject custom CSS to match monsterdsp.com dark theme with purple accents
 st.markdown(
@@ -567,209 +551,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Initialize session state for tracking if files have been processed
-if 'processed_files' not in st.session_state:
-    st.session_state.processed_files = False
-
-# Initialize spectrum data storage
-if 'spectrum_data' not in st.session_state:
-    st.session_state.spectrum_data = {}
-
-if 'active_spectra' not in st.session_state:
-    st.session_state.active_spectra = set()
-
-if 'combined_view' not in st.session_state:
-    st.session_state.combined_view = True
-
-# Counter handling with Supabase
-def get_counter():
-    try:
-        response = supabase.table('scan_counter').select('counter_value').single().execute()
-        if response.data:
-            return response.data['counter_value']
-        else:
-            # Initialize counter in Supabase if it doesn't exist
-            supabase.table('scan_counter').insert({'counter_value': 141}).execute()
-            return 141
-    except Exception as e:
-        st.error(f"Error accessing counter: {str(e)}")
-        return 141
-
-def increment_counter():
-    try:
-        current_count = get_counter()
-        new_count = current_count + 1
-        supabase.table('scan_counter').update({'counter_value': new_count}).eq('id', 1).execute()
-        return new_count
-    except Exception as e:
-        st.error(f"Error incrementing counter: {str(e)}")
-        return current_count + 1
-
-# Initialize counter from Supabase
-if 'total_count' not in st.session_state:
-    st.session_state.total_count = get_counter()
-
-# Function to increment the counter
-def increment_file_count():
-    st.session_state.total_count = increment_counter()
-
-# CSV processing
-def detect_csv_separator(sample_data):
-    if b';' in sample_data and b',' not in sample_data:
-        return b';'
-    elif b',' in sample_data and b';' not in sample_data:
-        return b','
-    else:
-        return b';'
-
-def convert_csv_content(csv_file):
-    csv_content = csv_file.read()
-    csv_content_str = csv_content.decode('utf-8')
-    csv_separator = detect_csv_separator(csv_content)
-
-    # Try to read with headers first
-    df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'))
-
-    # If the first row contains 'Frequency' in it, it's a header row
-    if 'Frequency' in str(df.columns[0]):
-        # Read again with proper header handling
-        df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'))
-    else:
-        # No headers, read without them
-        df = pd.read_csv(io.StringIO(csv_content_str), sep=csv_separator.decode('utf-8'), header=None)
-
-    converted_data = []
-    spectrum_data = {'frequencies': [], 'amplitudes': [], 'filename': csv_file.name}
-
-    for index, row in df.iterrows():
-        frequency = row.iloc[0]
-        if isinstance(frequency, str):
-            # Skip header row if it somehow got through
-            if 'frequency' in frequency.lower():
-                continue
-            frequency = float(frequency.replace(',', '.'))  # Convert to float if it's a string
-        value = row.iloc[1]
-        if isinstance(value, str):
-            value = float(value.replace(',', '.'))  # Convert to float if it's a string
-
-        formatted_frequency = format_frequency(frequency)
-        converted_data.append(f"{formatted_frequency}, {value:.3f}")
-
-        # Store spectrum data - use original frequency value
-        spectrum_data['frequencies'].append(frequency)
-        spectrum_data['amplitudes'].append(value)
-
-    return '\n'.join(converted_data), spectrum_data
-
-
-
-def format_frequency(frequency):
-    # Adjust the frequency to have 3 digits before the decimal point
-    while frequency < 100:
-        frequency *= 10
-    while frequency >= 1000:
-        frequency /= 10
-    
-    # Format to XXX.XXXXXX with exactly 6 digits after the decimal point
-    formatted_frequency = f"{frequency:.6f}"
-    return formatted_frequency
-
-
-def create_zip(files_dict):
-    buffer = BytesIO()
-    with zipfile.ZipFile(buffer, 'w') as zip_file:
-        for file_name, content in files_dict.items():
-            zip_file.writestr(file_name, content)
-    buffer.seek(0)
-    return buffer
-
-def create_spectrum_plot(spectrum_data_dict, active_files, title="Spectrum Analysis"):
-    """Create interactive spectrum plot using Plotly - Combined view only"""
-
-    # Determine the appropriate unit for all spectra
-    all_frequencies = []
-    for filename in active_files:
-        if filename in spectrum_data_dict:
-            all_frequencies.extend(spectrum_data_dict[filename]['frequencies'])
-
-    # Set default values
-    display_unit = "MHz"
-    tickformat = ".2f"
-
-    if len(all_frequencies) > 0:
-        max_freq = max(all_frequencies)
-        if max_freq >= 1e9:  # GHz range
-            display_unit = "GHz"
-            tickformat = ".3f"
-        elif max_freq >= 1e6:  # MHz range
-            display_unit = "MHz"
-            tickformat = ".2f"
-        else:  # Hz range
-            display_unit = "Hz"
-            tickformat = ".0f"
-
-    # Combined view - overlay all active spectra
-    fig = go.Figure()
-
-    colors = px.colors.qualitative.Set3  # Use a nice color palette
-
-    for i, filename in enumerate(active_files):
-        if filename in spectrum_data_dict:
-            data = spectrum_data_dict[filename]
-            color = colors[i % len(colors)]
-
-            # Convert frequencies based on detected unit
-            freq_values = data['frequencies']
-            if display_unit == "GHz":
-                frequencies_display = [f / 1e9 for f in freq_values]
-            elif display_unit == "MHz":
-                frequencies_display = [f / 1e6 for f in freq_values]
-            else:  # Hz
-                frequencies_display = freq_values
-
-            fig.add_trace(go.Scatter(
-                x=frequencies_display,
-                y=data['amplitudes'],
-                mode='lines',
-                name=filename,
-                line=dict(color=color, width=2),
-                hovertemplate=f'<b>{filename}</b><br>Frequency: %{{x:.3f}} {display_unit}<br>Amplitude: %{{y:.3f}}<extra></extra>'
-            ))
-
-    fig.update_layout(
-        title=title,
-        xaxis_title=f"Frequency ({display_unit})",
-        yaxis_title="Amplitude",
-        template="plotly_dark",
-        plot_bgcolor='rgba(10, 10, 10, 1)',
-        paper_bgcolor='rgba(10, 10, 10, 1)',
-        font=dict(color='white'),
-        hovermode='closest',
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        height=500,  # Taller for better visibility
-        margin=dict(l=50, r=50, t=50, b=50)
-    )
-
-    # Configure axes for better spectrum display
-    fig.update_xaxes(
-        tickformat=tickformat,
-        tickmode="auto",
-        nticks=10,
-        showgrid=True,
-        gridcolor='rgba(42, 42, 42, 0.3)',
-        tickfont=dict(size=10)
-    )
-    fig.update_yaxes(
-        showgrid=True,
-        gridcolor='rgba(42, 42, 42, 0.3)',
-        tickfont=dict(size=10)
-    )
-
-    return fig
-
-
-# Streamlit UI setup
-
+# Main content - Redirect page
 image_url = "https://i.postimg.cc/CK1NXb3j/monster-DSPlogo.png"
 st.markdown(f'''
 <div class="hero-section">
@@ -777,139 +559,50 @@ st.markdown(f'''
         <img src="{image_url}" class="hero-logo" />
     </div>
     <div class="hero-content">
-        <h1 class="hero-title">TinySA/RF Explorer to Wireless Workbench Converter</h1>
-        <p class="hero-subtitle">Now With Spectrum Preview</p>
+        <h1 class="hero-title">RF Scan Converter</h1>
+        <p class="hero-subtitle">Enhanced Version Now Available</p>
         <p class="hero-brand">by <a href="https://www.monsterdsp.com" class="brand-link">monsterDSP</a></p>
     </div>
 </div>
 ''', unsafe_allow_html=True)
-uploaded_files = st.file_uploader("Select Multiple .CSV Files", accept_multiple_files=True, type='csv')
 
-if uploaded_files:
-    files_dict = {}
+# Redirect message and button
+st.markdown("""
+<div style="text-align: center; margin: 2rem auto; max-width: 600px;">
+    <h2 style="color: var(--text-color); margin-bottom: 1.5rem; font-size: 1.5rem;">
+        🚀 We've Moved to Our Official Website
+    </h2>
+    <p style="color: var(--text-secondary); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+        We've discontinued our Streamlit version and implemented a more powerful RF Scan Converter
+        directly on our official website with enhanced features and better performance.
+    </p>
+    <div style="margin: 2rem 0;">
+        <a href="https://www.monsterdsp.com/shop/rfconverter" target="_blank" style="
+            background: linear-gradient(to right, #a855f7, #9333ea);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(168, 85, 247, 0.2);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        " onmouseover="this.style.background='linear-gradient(to right, #9333ea, #a855f7)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 16px rgba(168, 85, 247, 0.3)'" onmouseout="this.style.background='linear-gradient(to right, #a855f7, #9333ea)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 12px rgba(168, 85, 247, 0.2)'">
+            🌐 Visit Enhanced RF Converter
+        </a>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2rem;">
+        You will be redirected to: <strong style="color: var(--primary-color);">www.monsterdsp.com/shop/rfconverter</strong>
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
-    # Process all uploaded files (not just the first time)
-    for uploaded_file in uploaded_files:
-        # Check if this file has already been processed
-        if uploaded_file.name not in st.session_state.spectrum_data:
-            # New file - process it
-            converted_data, spectrum_data = convert_csv_content(uploaded_file)
-            files_dict[uploaded_file.name + '_OK.txt'] = converted_data
-
-            # Store spectrum data
-            st.session_state.spectrum_data[uploaded_file.name] = spectrum_data
-            st.session_state.active_spectra.add(uploaded_file.name)
-
-            # Mark that files have been processed
-            st.session_state.processed_files = True
-
-    # If no files were processed in this iteration, ensure processed_files is still True
-    if uploaded_files and not st.session_state.processed_files:
-        st.session_state.processed_files = True
-
-    # Always show downloads after files are uploaded
-
-    # Individual file downloads
-    for uploaded_file in uploaded_files:
-        if uploaded_file.name in st.session_state.spectrum_data:
-            converted_data = files_dict.get(uploaded_file.name + '_OK.txt', '')
-            if converted_data:
-                b64 = base64.b64encode(converted_data.encode()).decode()
-                href = f'''
-                <div style="margin: 8px 0; text-align: center;">
-                    <a href="data:file/txt;base64,{b64}" download="{uploaded_file.name}_OK.txt" style="
-                        background: linear-gradient(to right, #a855f7, #9333ea);
-                        color: white;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        text-decoration: none;
-                        font-weight: 600;
-                        display: inline-block;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 3px 12px rgba(168, 85, 247, 0.2);
-                        text-transform: uppercase;
-                        letter-spacing: 0.3px;
-                        font-size: 0.875rem;
-                    " onmouseover="this.style.background='linear-gradient(to right, #9333ea, #a855f7)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 16px rgba(168, 85, 247, 0.3)'" onmouseout="this.style.background='linear-gradient(to right, #a855f7, #9333ea)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 12px rgba(168, 85, 247, 0.2)'">
-                        📁 Download {uploaded_file.name}_OK.txt
-                    </a>
-                </div>
-                '''
-                st.markdown(href, unsafe_allow_html=True)
-
-    # ZIP download
-    if len(files_dict) > 1:
-        zip_buffer = create_zip(files_dict)
-        b64_zip = base64.b64encode(zip_buffer.read()).decode()
-        href_zip = f'''
-        <div style="margin: 1rem 0; text-align: center;">
-            <a href="data:application/zip;base64,{b64_zip}" download="RFScanConverter_Files.zip" style="text-decoration: none;">
-                <button style="
-                    background: linear-gradient(to right, #a855f7, #9333ea);
-                    color: white;
-                    border: none;
-                    padding: 1rem 2rem;
-                    text-align: center;
-                    text-decoration: none;
-                    display: inline-block;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.3px;
-                    cursor: pointer;
-                    border-radius: 12px;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 3px 12px rgba(168, 85, 247, 0.2);
-                " onmouseover="this.style.background='linear-gradient(to right, #9333ea, #a855f7)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 16px rgba(168, 85, 247, 0.3)'" onmouseout="this.style.background='linear-gradient(to right, #a855f7, #9333ea)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 12px rgba(168, 85, 247, 0.2)'">📦 Download All Files as ZIP</button>
-            </a>
-        </div>
-        '''
-        st.markdown(href_zip, unsafe_allow_html=True)
-
-    # Spectrum Preview Section - Centered
-    if len(st.session_state.spectrum_data) > 0:
-        # Use a unique key for the entire spectrum section to force refresh when new files are added
-        spectrum_section_key = f"spectrum_section_{len(st.session_state.spectrum_data)}"
-        st.markdown(f'<div class="spectrum-container" key="{spectrum_section_key}"><h3 class="spectrum-header">📊 Spectrum Preview</h3>', unsafe_allow_html=True)
-
-        # Spectrum selection controls
-        if len(st.session_state.spectrum_data) > 1:
-            st.markdown('<div style="padding: 0.5rem 0 1rem 0; color: #9ca3af; font-size: 0.875rem;">Select spectra to display (uncheck to hide specific spectra):</div>', unsafe_allow_html=True)
-
-            # Create checkboxes for each spectrum - all start checked
-            for filename in st.session_state.spectrum_data.keys():
-                # Ensure all spectra start as active by default
-                if filename not in st.session_state.active_spectra:
-                    st.session_state.active_spectra.add(filename)
-
-                is_active = filename in st.session_state.active_spectra
-                if st.checkbox(filename, value=is_active, key=f"active_{filename}"):
-                    st.session_state.active_spectra.add(filename)
-                else:
-                    st.session_state.active_spectra.discard(filename)
-
-        # Force spectrum plot to refresh when data changes
-        spectrum_key = f"spectrum_{len(st.session_state.spectrum_data)}_{len(st.session_state.active_spectra)}_{list(st.session_state.spectrum_data.keys())}"
-
-        # Create and display the plot
-        if len(st.session_state.active_spectra) > 0:
-            fig = create_spectrum_plot(
-                st.session_state.spectrum_data,
-                list(st.session_state.active_spectra),
-                title="Spectrum Analysis"
-            )
-
-            if fig is not None:
-                st.plotly_chart(fig, use_container_width=True, config={
-                    'displayModeBar': True,
-                    'displaylogo': False,
-                    'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d'],
-                    'responsive': True
-                }, key=spectrum_key)
-
-        st.markdown(f'</div>', unsafe_allow_html=True)
-
-# Display total count using session state
-st.markdown(f'<div style="text-align: center; margin-top: 2rem; padding: 0.75rem; background: var(--background-tertiary); border-radius: 12px; border: 1px solid var(--gray-800); border-left: 4px solid var(--primary-color);"><p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;"><span style="color: var(--primary-color); font-weight: 600;">Total files processed by users:</span> <span style="color: var(--text-color); font-weight: bold; font-size: 1.125rem;">{st.session_state.total_count}</span></p></div>', unsafe_allow_html=True)
+# Auto-redirect using meta refresh
+st.markdown("""
+<meta http-equiv="refresh" content="3; url=https://www.monsterdsp.com/shop/rfconverter">
+""", unsafe_allow_html=True)
 
 

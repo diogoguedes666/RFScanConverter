@@ -1,18 +1,18 @@
-RF Scan Converter by monsterDSP
+# RF Scan Converter by monsterDSP
 
-Convert TinySA and RF Explorer CSVs into Wireless Workbench formatting
+🚀 Enhanced Version Now Available on Our Official Website
 
+We've discontinued our Streamlit version and implemented a more powerful RF Scan Converter directly on our official website with enhanced features and better performance.
 
+🌐 Visit the Enhanced RF Converter:
+[www.monsterdsp.com/shop/rfconverter](https://www.monsterdsp.com/shop/rfconverter)
 
+This page will automatically redirect you to the enhanced version on our website.
 
+---
 
-Simplify your frequency coordination process FOR FREE with our converter tool designed for TinySA and RF Explorer users.
-
-✨ Key Features:
-    FREE and ONLINE
-    Converts multiple CSV files from TinySA or RF Explorer.
-    Formats frequencies to be Wireless Workbench-compatible.
-    Instantly delivers .TXT files for seamless integration into Shure Wireless Workbench.
-
-🌐 Get Started:
-Visit https://rfscanconverter.streamlit.app/ to access the converter tool. 
+*Previous Streamlit Version Features:*
+- Convert TinySA and RF Explorer CSVs into Wireless Workbench formatting
+- Multiple file conversion
+- Spectrum visualization
+- Wireless Workbench-compatible output
