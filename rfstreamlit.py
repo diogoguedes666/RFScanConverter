@@ -121,12 +121,12 @@ with col2:
     """, unsafe_allow_html=True)
     
     # Use st.link_button for reliable external navigation
-    st.link_button("🚀 VISIT ENHANCED RF CONVERTER", "https://www.monsterdsp.com/shop/rfexplorer", use_container_width=True)
+    st.link_button("🚀 VISIT ENHANCED RF CONVERTER", "https://www.monsterdsp.com/shop/rfconverter", use_container_width=True)
     
     # URL info
     st.markdown("""
     <div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: #6b7280;">
-        Redirecting to: <strong style="color: #a855f7;">www.monsterdsp.com/shop/rfexplorer</strong>
+        Redirecting to: <strong style="color: #a855f7;">www.monsterdsp.com/shop/rfconverter</strong>
     </div>
     """, unsafe_allow_html=True)
 
