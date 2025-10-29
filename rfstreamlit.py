@@ -143,10 +143,7 @@ with col2:
         <p class="feature-description">
             Convert TinySA/RF Explorer scans to Wireless Workbench format
         </p>
-        <p class="description">
-            Transform your RF spectrum analysis data into professional wireless coordination format.
-            Compatible with Shure Wireless Workbench for seamless integration with your wireless microphone systems.
-        </p>
+
     </div>
     """, unsafe_allow_html=True)
 
